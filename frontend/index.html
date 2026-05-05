@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ViralCraft AI — Malayalam Reel Script Generator</title>
+  <meta name="description" content="AI-powered Malayalam tech reel script generator. Download reels, learn your style, generate viral 30-second scripts with proven frameworks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/style.css" />
+</head>
+<body>
+  <!-- ── Animated background ── -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🎬</span>
+        <div>
+          <span class="logo-text">ViralCraft</span>
+          <span class="logo-badge">AI</span>
+        </div>
+      </div>
+      <div class="header-meta" id="healthBadge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusLabel">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Provider Bar ── -->
+  <div class="provider-bar" id="providerBar">
+    <div class="provider-bar-inner">
+      <span class="provider-label">🤖 AI Provider:</span>
+      <div class="provider-pills" role="group" aria-label="LLM provider">
+        <button class="provider-pill active" id="pill-groq"     onclick="selectProvider('groq')">
+          <span class="pill-dot free"></span> Groq <span class="pill-tag">FREE</span>
+        </button>
+        <button class="provider-pill"         id="pill-ollama"  onclick="selectProvider('ollama')">
+          <span class="pill-dot local"></span> Ollama <span class="pill-tag">LOCAL</span>
+        </button>
+        <button class="provider-pill"         id="pill-anthropic" onclick="selectProvider('anthropic')">
+          <span class="pill-dot paid"></span> Anthropic <span class="pill-tag paid-tag">PAID</span>
+        </button>
+      </div>
+      <!-- Model selector (Groq only) -->
+      <div class="model-select-wrap" id="modelSelectWrap">
+        <select class="model-select" id="modelSelect" aria-label="Groq model">
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B ⭐</option>
+          <option value="llama3-8b-8192">Llama 3 8B (Fast)</option>
+          <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+          <option value="gemma2-9b-it">Gemma 2 9B</option>
+          <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+        </select>
+      </div>
+      <span class="provider-status" id="providerStatus"></span>
+    </div>
+  </div>
+
+  <!-- ── Main Layout ── -->
+  <main class="main-grid">
+
+    <!-- ════════════════════════════════════════════
+         LEFT PANEL — Style Memory
+    ═══════════════════════════════════════════════ -->
+    <aside class="panel panel-left" id="stylePanel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-icon">🧠</span>
+          Style Memory
+        </h2>
+        <span class="transcript-count" id="transcriptCount">0 reels</span>
+      </div>
+
+      <!-- Add Reel Links -->
+      <section class="card" id="addReelsSection">
+        <h3 class="card-title">Add Reel Links</h3>
+        <p class="card-subtitle">Paste Instagram, YouTube Shorts, or TikTok links — one per line</p>
+        <textarea
+          id="urlInput"
+          class="textarea"
+          rows="5"
+          placeholder="https://www.instagram.com/reel/...&#10;https://youtube.com/shorts/...&#10;https://www.tiktok.com/..."
+          aria-label="Reel URLs"
+        ></textarea>
+        <button class="btn btn-primary" id="downloadBtn" onclick="startDownload()">
+          <span class="btn-icon">⬇</span>
+          Download &amp; Transcribe
+        </button>
+
+        <!-- Job progress -->
+        <div class="progress-block hidden" id="progressBlock">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <p class="progress-label" id="progressLabel">Starting...</p>
+        </div>
+      </section>
+
+      <!-- Stored Transcripts -->
+      <section class="card" id="transcriptListSection">
+        <div class="transcript-list-header">
+          <h3 class="card-title">Learned Reels</h3>
+          <button class="btn-text btn-danger" id="clearAllBtn" onclick="clearStyleMemory()">Clear all</button>
+        </div>
+        <div id="transcriptList" class="transcript-list">
+          <div class="empty-state">
+            <span class="empty-icon">🎞️</span>
+            <p>No reels added yet.<br/>Add links above to train your style.</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ════════════════════════════════════════════
+         RIGHT PANEL — Script Generator
+    ═══════════════════════════════════════════════ -->
+    <section class="panel panel-right">
+
+      <!-- Input Mode Toggle -->
+      <div class="mode-toggle" role="tablist" aria-label="Input mode">
+        <button
+          class="mode-btn active"
+          id="modeTopicBtn"
+          role="tab"
+          aria-selected="true"
+          onclick="setMode('topic')"
+        >
+          <span>💡</span> Topic / Keyword
+        </button>
+        <button
+          class="mode-btn"
+          id="modeParagraphBtn"
+          role="tab"
+          aria-selected="false"
+          onclick="setMode('paragraph')"
+        >
+          <span>📄</span> Research Paragraph
+        </button>
+      </div>
+
+      <!-- Input Card -->
+      <div class="card" id="inputCard">
+        <h3 class="card-title" id="inputTitle">Enter Your Topic</h3>
+        <p class="card-subtitle" id="inputSubtitle">Type a tech topic or keyword in English or Malayalam</p>
+
+        <div class="input-wrapper" id="topicInputWrapper">
+          <input
+            type="text"
+            id="topicInput"
+            class="text-input"
+            placeholder="e.g. Agentic AI Memory, Gemini 1.5 Pro, Cursor AI..."
+            aria-label="Topic input"
+          />
+        </div>
+
+        <div class="input-wrapper hidden" id="paragraphInputWrapper">
+          <textarea
+            id="paragraphInput"
+            class="textarea textarea-tall"
+            rows="7"
+            placeholder="Paste your research notes, article summary, or any content paragraph here. The AI will extract the key points and write a viral script..."
+            aria-label="Research paragraph input"
+          ></textarea>
+        </div>
+
+        <!-- Framework reminder chips -->
+        <div class="framework-chips">
+          <span class="chip">🎣 Hook</span>
+          <span class="chip">⚡ Problem</span>
+          <span class="chip">💎 3 Points</span>
+          <span class="chip">🔥 Closer</span>
+          <span class="chip">📣 CTA</span>
+        </div>
+
+        <button class="btn btn-generate" id="generateBtn" onclick="generateScript()">
+          <span class="btn-icon">✨</span>
+          Generate Viral Script
+        </button>
+      </div>
+
+      <!-- Output Card -->
+      <div class="card card-output hidden" id="outputCard">
+        <div class="output-header">
+          <h3 class="card-title">🎬 Your Script</h3>
+          <div class="output-actions">
+            <button class="btn-icon-only" title="Copy script" onclick="copyScript()" id="copyBtn">
+              📋
+            </button>
+            <button class="btn-icon-only" title="New script" onclick="resetOutput()">
+              🔄
+            </button>
+          </div>
+        </div>
+
+        <!-- Score badge -->
+        <div class="score-banner hidden" id="scoreBanner">
+          <span class="score-label">Viral Score</span>
+          <span class="score-value" id="scoreValue">—</span>
+          <span class="score-denom">/140</span>
+        </div>
+
+        <!-- Script content -->
+        <div class="script-output" id="scriptOutput"></div>
+
+        <!-- Style info -->
+        <div class="style-info" id="styleInfo"></div>
+      </div>
+
+      <!-- Loading state -->
+      <div class="card card-loading hidden" id="loadingCard">
+        <div class="loading-animation">
+          <div class="loading-ring"></div>
+          <div class="loading-ring loading-ring-2"></div>
+          <div class="loading-ring loading-ring-3"></div>
+        </div>
+        <p class="loading-title">Crafting Your Script...</p>
+        <p class="loading-subtitle" id="loadingSubtitle">Analyzing style memory and generating viral framework...</p>
+        <div class="loading-steps">
+          <div class="loading-step active" id="lstep1">📖 Reading style memory</div>
+          <div class="loading-step" id="lstep2">🔍 Researching topic angle</div>
+          <div class="loading-step" id="lstep3">✍️ Writing viral script</div>
+          <div class="loading-step" id="lstep4">🎯 Scoring &amp; fact-checking</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ── Toast notification ── -->
+  <div class="toast hidden" id="toast" role="alert" aria-live="polite"></div>
+
+  <script src="static/app.js"></script>
+</body>
+</html>
